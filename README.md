@@ -2,10 +2,10 @@
 
 ### Description
 This code is to be loaded onto any Arduino board which supports WiFi. This guide is written for my ESP8266 LiLon NodeMCU V3. 
-A helpful setup guide to get your board started can be found (here)[https://www.instructables.com/Getting-Started-With-ESP8266LiLon-NodeMCU-V3Flashi/]
+A helpful setup guide to get your board started can be found [here](https://www.instructables.com/Getting-Started-With-ESP8266LiLon-NodeMCU-V3Flashi/)
 
 ### Installation
-Open the `.ino` file in the (Arduino IDE)[https://www.arduino.cc/en/software]
+Open the `.ino` file in the [Arduino IDE](https://www.arduino.cc/en/software)
 
 Use this like to install the requred ESP8266 libraries into your IDE:
 ```
@@ -13,11 +13,11 @@ http://arduino.esp8266.com/stable/package_esp8266com_index.json
 ```
 
 Other libraries from Arduino imported through the IDE:
-(Arduino_JSON by Arduino)[https://github.com/arduino-libraries/Arduino_JSON]
+[Arduino_JSON by Arduino](https://github.com/arduino-libraries/Arduino_JSON)
 
 ### Configuration
 The code needs to be configured to your WiFi network. 
-(These lines)[https://github.com/Aman7123/ESP8266-Coffee-Pot/blob/5647565b01a936967c40c6259acfd2c4815e8e94/ESP8266-Coffee-Pot.ino#L11-L12] needs to contain for WiFi ssid and password.
+[These lines](https://github.com/Aman7123/ESP8266-Coffee-Pot/blob/5647565b01a936967c40c6259acfd2c4815e8e94/ESP8266-Coffee-Pot.ino#L11-L12) needs to contain for WiFi ssid and password.
 
 NOTE: The esp8266 chip does not have WiFi 5g capibilities.
 
