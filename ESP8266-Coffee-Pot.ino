@@ -296,7 +296,7 @@ void setup() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(SSID, PASS);
   while(WiFi.status() != WL_CONNECTED) delay(500);
-  TRACE("%sConnected to internet%s", NEWLINE, NEWLINE);
+  TRACE("Connected to internet%s", NEWLINE);
   printWiFi();
   // Get time
   configTime(TIMEZONE, "time-b-g.nist.gov", "time-a-g.nist.gov", "time.nist.gov");
