@@ -1,9 +1,7 @@
-#include <ESP8266WiFi.h>
+#include <Arduino.h>
 
-#define NEWLINE "\r\n"
-#define TIMEZONE "UTC"
-#define TRACE(...) Serial.printf(__VA_ARGS__)
-
+// Time related things
+// TODO: clean this up
 tm* getTime();
 long timeTypeToEpoch(time_t time);
 tm getTimeFromEpoch(time_t seconds);
