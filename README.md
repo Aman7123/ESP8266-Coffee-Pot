@@ -3,7 +3,7 @@
 ## Description
 This code is to be loaded onto any Arduino board which supports WiFi. This guide is written for my ESP8266 LiLon NodeMCU V3.
 
-<img src="./resources/coffeepot_closeup.jpg" width="376" height="501" >
+<img src="./resources/coffeepot-closeup.jpg" width="376" height="501" >
 
 ## Installation
 1. Set and get your NodeMCU board going [here](https://www.instructables.com/Getting-Started-With-ESP8266LiLon-NodeMCU-V3Flashi/)
@@ -55,6 +55,14 @@ The request body for the POST and PATCH methods is:
 The `brewStart` field is required on a POST and for convenience is increased by 24 hours after an initial brew starts. 
 Even if the start time is set through a POST the `hopperLoaded` value is requred to be set either in the initial POST or a subsequent PATCH. 
 
+The `brewStart` value is increased for 24 hours in seconds as brewing starts for convience.
+
+After a `DELETE` is sent and the `Cancelled` state is set no brewing can occur again until a PATCH or POST is sent.
+
+---
+## Practical Implementation
+Please see the `Coffee.shortcut` which can be imported into an iPhone or iPad for use with the Shortcuts app.
+* [Shortcuts App Store Link](https://apps.apple.com/us/app/shortcuts/id915249334)
 ---
 ## Credits
 * Aaron Renner <http://github.com/Aman7123>
