@@ -291,7 +291,7 @@ void loop() {
     }
   }
   // Implementation for brew cycle when ready
-  if(state != Brewing && state != Cancelled && hopperLoaded) {
+  if(state != Brewing && hopperLoaded) {
     // Check start time from variable
     long brewStartSeconds = timeStructToLong(brewStart);
     // Check if brew time is supposed to have occured if it has, start it
