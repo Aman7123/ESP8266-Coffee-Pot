@@ -10,9 +10,10 @@
 #define SSID "Dunder Mifflin Paper Company"
 #define PASS "01072019"
 enum State state = Waiting;
-tm brewStart;
+tm reoccurringStart;
 tm brewTimeout;
 bool hopperLoaded = false;
+bool instantBrew = false;
 
 // Global components
 ESP8266WebServer apiServer(API_PORT);
@@ -105,10 +106,10 @@ boolean determineHopperLoadedAsReference(JSONVar requestBody, boolean& hopperLoa
     // Get the type of the field's value
     String fieldType = JSON.typeof(requestBody[HOPPER_LOADED_FIELD]);
     // Ensure value is something parsable
-    if( (fieldType != "number") && (fieldType != "boolean")) { 
+    if(fieldType != "boolean") { 
       // If the field is not parsable then we need to throw an error
       char* output;
-      asprintf(&output, "%s field not valid number or boolean", HOPPER_LOADED_FIELD);
+      asprintf(&output, "%s field not valid boolean", HOPPER_LOADED_FIELD);
       httpException(BAD_REQUEST_CODE, output);
       return false;
     }
@@ -118,34 +119,57 @@ boolean determineHopperLoadedAsReference(JSONVar requestBody, boolean& hopperLoa
   return true;
 }
 
+// Helper function to determine the body instant brew field
+// requestBody - Arduino JSON library object
+// instantBrewAsReference - Reference to the boolean instant brew
+// return if a boolean for if the funciton was successful or not
+boolean determineInstantBrewAsReference(JSONVar requestBody, boolean& instantBrewAsReference) {
+  // Ensure the JSON object has the K/V pair
+  if(requestBody.hasOwnProperty(INSTANT_BREW_FIELD)) {
+    // Get the type of the field's value
+    String fieldType = JSON.typeof(requestBody[INSTANT_BREW_FIELD]);
+    // Ensure value is something parsable
+    if(fieldType != "boolean") { 
+      // If the field is not parsable then we need to throw an error
+      char* output;
+      asprintf(&output, "%s field not valid boolean", INSTANT_BREW_FIELD);
+      httpException(BAD_REQUEST_CODE, output);
+      return false;
+    }
+    // This would be a valid request
+    instantBrewAsReference = (boolean) requestBody[INSTANT_BREW_FIELD];
+  }
+  return true;
+}
+
 // Helper function to determine the body startTime field
 // requestBody - Arduino JSON library object
 // startTimeAsReference - Reference to the in-memory start time
 // return is a boolean representing if the function was successful or not
-boolean determineStartTimeAsReference(JSONVar requestBody, tm& startTimeAsReference) {
+boolean determineReoccurringStartAsReference(JSONVar requestBody, tm& startTimeAsReference) {
   // Some checks to ensure datatype
-  if(JSON.typeof(requestBody[BREW_START_FIELD]) != "number") { 
+  if(JSON.typeof(requestBody[REOCCURRING_START_FIELD]) != "number") { 
     char* output;
-    asprintf(&output, "%s field not valid number", BREW_START_FIELD);
+    asprintf(&output, "%s field not valid number", REOCCURRING_START_FIELD);
     httpException(BAD_REQUEST_CODE, output);
     return false;
   }
   // Assign user time to local variable
-  tm tempBrewStart = getTimeFromEpoch((long) requestBody[BREW_START_FIELD]);
-  // Ensure brewStart is after currentTime
+  tm userProvidedTime = getTimeFromEpoch((long) requestBody[REOCCURRING_START_FIELD]);
+  // Ensure reoccurringStart is after currentTime
   long secondsSinceEpoch = getCurrentTimeInLongSinceEpoch();
-  double diff = getCurrentTimeDiffStartTime(tempBrewStart);
+  double diff = getCurrentTimeDiffStartTime(userProvidedTime);
   double startOffsetInSeconds = 30.0; // 30 seconds
-  // If provided brewStart is not 1 minute pst now we return 400 Bad Request
+  // If provided reoccurringStart is not 1 minute pst now we return 400 Bad Request
   if(diff > startOffsetInSeconds) {
     char* output;
     long startOffsetLong = (long) startOffsetInSeconds;
-    asprintf(&output, "%s must be greater than %ld, current time plus %ld seconds", BREW_START_FIELD, (secondsSinceEpoch + startOffsetLong), startOffsetLong);
+    asprintf(&output, "%s must be greater than %ld, current time plus %ld seconds", REOCCURRING_START_FIELD, (secondsSinceEpoch + startOffsetLong), startOffsetLong);
     httpException(BAD_REQUEST_CODE, output);
     return false;
   }
   // Save passed in start time
-  startTimeAsReference = tempBrewStart;
+  startTimeAsReference = userProvidedTime;
   return true;
 }
 
@@ -163,14 +187,10 @@ void restServerController() {
     JSONVar requestBody = JSON.parse(apiServer.arg("plain"));
     // Save hopper loaded
     if(requestBody.hasOwnProperty(HOPPER_LOADED_FIELD)) determineHopperLoadedAsReference(requestBody, hopperLoaded);
+    // Save instant brew
+    if(requestBody.hasOwnProperty(INSTANT_BREW_FIELD)) determineInstantBrewAsReference(requestBody, instantBrew);
     // Save startTime
-    if(requestBody.hasOwnProperty(BREW_START_FIELD)) {
-      determineStartTimeAsReference(requestBody, brewStart);
-    } else {
-      char* output;
-      asprintf(&output, "%s field not provided but is required", BREW_START_FIELD);
-      httpException(BAD_REQUEST_CODE, output);
-    }
+    if(requestBody.hasOwnProperty(REOCCURRING_START_FIELD)) determineReoccurringStartAsReference(requestBody, reoccurringStart);
     // Set status to pending
     state = Pending;
     // Respond to the client
@@ -186,11 +206,11 @@ void restServerController() {
     // Calculate for response purposes the start time are adequate before telling the client or just safely show null
     if(state != Waiting) {
       // Append the brew start time
-      body[BREW_START_FIELD] = timeStructToLong(brewStart);
-      body[BREW_START_DIFF_FIELD] = (long) getStartTimeDiffCurrentTime(brewStart);      
+      body[REOCCURRING_START_FIELD] = timeStructToLong(reoccurringStart);
+      body[REOCCURRING_DIFF_FIELD] = (long) getStartTimeDiffCurrentTime(reoccurringStart);      
     } else {
-      body[BREW_START_FIELD] = nullptr;
-      body[BREW_START_DIFF_FIELD] = nullptr;
+      body[REOCCURRING_START_FIELD] = nullptr;
+      body[REOCCURRING_DIFF_FIELD] = nullptr;
     }
     // Add some additional info if the pot if brewing currently
     if(state == Brewing) {
@@ -202,6 +222,8 @@ void restServerController() {
     } 
     // Show hopper loaded from memory
     body[HOPPER_LOADED_FIELD] = hopperLoaded;
+    // Add the instant brew metric for debugging
+    body[INSTANT_BREW_FIELD] = instantBrew;
     // Print curent timestamp of board
     body["timestamp"] = currentTimeToLong();
     // response to client
@@ -224,8 +246,10 @@ void restServerController() {
     JSONVar requestBody = JSON.parse(apiServer.arg("plain"));
     // Save hopper loaded
     if(requestBody.hasOwnProperty(HOPPER_LOADED_FIELD)) determineHopperLoadedAsReference(requestBody, hopperLoaded);
+    // Save instant brew
+    if(requestBody.hasOwnProperty(INSTANT_BREW_FIELD)) determineInstantBrewAsReference(requestBody, instantBrew);
     // Save startTime
-    if(requestBody.hasOwnProperty(BREW_START_FIELD)) determineStartTimeAsReference(requestBody, brewStart);
+    if(requestBody.hasOwnProperty(REOCCURRING_START_FIELD)) determineReoccurringStartAsReference(requestBody, reoccurringStart);
     // Update state
     state = Pending;
     // Respond to the client
@@ -290,15 +314,32 @@ void loop() {
       state = Pending;
     }
   }
-  // Implementation for brew cycle when ready
+  // Detmine instant brew
   if(state != Brewing && hopperLoaded) {
-    // Check start time from variable
-    long brewStartSeconds = timeStructToLong(brewStart);
-    // Check if brew time is supposed to have occured if it has, start it
-    if( currentSeconds > brewStartSeconds ) {
-      // Bump up the brew start value by 24 hours for convience of just PATCHing the hopper loaded value
-      brewStartSeconds += 86400; // 24 hours
-      brewStart = getTimeFromEpoch(brewStartSeconds);
+    // If instant brew is set
+    if(instantBrew) {
+      // Save brew timeout for another check
+      // This should save the house from burning down
+      brewTimeout = getTimeFromEpoch(currentSeconds + BREW_CYCLE_TIMEOUT);
+      // Activate brew
+      state = Brewing;
+      // Deactivate the filled hopper
+      hopperLoaded = false;
+      // Unset instant brew
+      instantBrew = false;
+    }
+  }  
+  long reoccurringStartSeconds = timeStructToLong(reoccurringStart);
+  // Implementation for brew cycle when ready
+  if( currentSeconds > reoccurringStartSeconds ) {
+    // Bump up the brew start value by 24 hours for convience of just PATCHing the hopper loaded value
+    reoccurringStartSeconds += 86400; // 24 hours
+    // Increase our in memory value
+    reoccurringStart = getTimeFromEpoch(reoccurringStartSeconds);
+    // For safety mesures if our hopper is not loaded by the registered brew time we cancel
+    if(state == Brewing || !hopperLoaded) return;
+    // Double check our values just to be sure
+    if(state != Brewing && hopperLoaded) {
       // Save brew timeout for another check
       // This should save the house from burning down
       brewTimeout = getTimeFromEpoch(currentSeconds + BREW_CYCLE_TIMEOUT);

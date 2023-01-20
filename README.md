@@ -48,16 +48,17 @@ The request body for the POST and PATCH methods is:
 ```json
 {
   "hopperLoaded": true,
-  "brewStart": 1673826720
+  "reoccurringStart": 1673826720
 }
 ```
+An optional `instantBrew` field which accepts a boolean can be used with `hopperLoaded` to turn on the brew at the next clock cycle, ASAP!
 
-The `brewStart` field is required on a POST and for convenience is increased by 24 hours after an initial brew starts. 
+The `reoccurringStart` field is required on a POST and for convenience is increased by 24 hours after an initial brew starts. 
 Even if the start time is set through a POST the `hopperLoaded` value is requred to be set either in the initial POST or a subsequent PATCH. 
 
-The `brewStart` value is increased for 24 hours in seconds as brewing starts for convience.
+The `reoccurringStart` value is increased for 24 hours in seconds as brewing starts for convience.
 
-After a `DELETE` is sent and the `Cancelled` state is set no brewing can occur again until a PATCH or POST is sent.
+After a `DELETE` is sent and the `Cancelled` state which is cosmetic.
 
 ---
 ## Practical Implementation

@@ -15,11 +15,12 @@
 #define JSON_MEDIA_TYPE "application/json"
 
 // HTTP body variables
-#define BREW_START_FIELD "brewStart"
-#define BREW_START_DIFF_FIELD "startDiff"
+#define REOCCURRING_START_FIELD "reoccurringStart"
+#define REOCCURRING_DIFF_FIELD "reoccurringDiff"
 #define BREW_TIMEOUT_FIELD "brewTimeout"
 #define BREW_TIMEOUT_DIFF_FIELD "timeoutDiff"
 #define HOPPER_LOADED_FIELD "hopperLoaded"
+#define INSTANT_BREW_FIELD "instantBrew"
 
 // HTTP status codes
 #define SUCCESS_CODE 200
