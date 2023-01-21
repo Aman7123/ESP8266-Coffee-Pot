@@ -1,5 +1,7 @@
 // Functions
+#ifndef TRACE
 #define TRACE(...) Serial.printf(__VA_ARGS__)
+#endif
 
 // Runtime variables
 #define RELAY_PIN D2
