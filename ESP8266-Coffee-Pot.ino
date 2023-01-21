@@ -1,13 +1,12 @@
 // Libraries
 #include <Arduino_JSON.h>
+#include "secrets.h"
 #include "src/helpers/helpers.h"
 #include "src/state/state.h"
 #include "src/definitions/definitions.h" // Most variables located here
 #include "src/HTTPServer/HTTPServer.h"
 
 // Global variables
-#define SSID "Dunder Mifflin Paper Company"
-#define PASS "01072019"
 enum State state = Waiting;
 tm reoccurringStart;
 tm brewTimeout;
@@ -195,7 +194,7 @@ void setup() {
   // Setup delay
   delay(10);
   // // Connect to WiFi
-  server.begin(SSID, PASS);
+  server.begin(ssid, password);
   // Init API routes
   restServerController();
   // Start API server
