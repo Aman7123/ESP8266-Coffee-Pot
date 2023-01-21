@@ -18,7 +18,7 @@ This code is to be loaded onto any Arduino board which supports WiFi. This guide
 ## Configuration
 ### WiFi - Required
 The code needs to be configured to your WiFi network. 
-[These lines](https://github.com/Aman7123/ESP8266-Coffee-Pot/blob/757ff3c42405b5e6583dc6497e3fa2715ad95372/ESP8266-Coffee-Pot.ino#L10-L11) need to contain your WiFi ssid and password.
+[secrets.h](https://github.com/Aman7123/ESP8266-Coffee-Pot/blob/65894b610bcbd67616558b80ade769d4996b349f/secrets.h#L1-L2) need to contain your WiFi ssid and password.
 
 *NOTE: The ESP8266 chip does not have WiFi 5Ghz capibilities.*
 
