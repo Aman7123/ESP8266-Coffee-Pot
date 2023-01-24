@@ -69,7 +69,9 @@ String timeToString(tm* timeptr) {
 
 long timeStructToLong(tm time) {
   time_t timeToEpoch = timeSinceEpoch(time);
-  return timeTypeToEpoch(timeToEpoch);
+  if(timeToEpoch < 0) timeToEpoch = 0;
+  long timeToLong = timeTypeToEpoch(timeToEpoch);
+  return timeToEpoch;
 }
 
 long currentTimeToLong() {

@@ -122,22 +122,13 @@ void restServerController() {
     JSONVar body;  
     body["state"] = getStateAsString(state);
     // Calculate for response purposes the start time are adequate before telling the client or just safely show null
-    if(state != Waiting) {
-      // Append the brew start time
-      body[REOCCURRING_START_FIELD] = timeStructToLong(reoccurringStart);
-      body[REOCCURRING_DIFF_FIELD] = (long) getStartTimeDiffCurrentTime(reoccurringStart);      
-    } else {
-      body[REOCCURRING_START_FIELD] = nullptr;
-      body[REOCCURRING_DIFF_FIELD] = nullptr;
-    }
+    body[REOCCURRING_START_FIELD] = timeStructToLong(reoccurringStart);
+    long tempStartDiff = (long) getStartTimeDiffCurrentTime(reoccurringStart);
+    body[REOCCURRING_DIFF_FIELD] = (tempStartDiff > 0) ? tempStartDiff : 0;
     // Add some additional info if the pot if brewing currently
-    if(state == Brewing) {
-      body[BREW_TIMEOUT_FIELD] = timeStructToLong(brewTimeout);
-      body[BREW_TIMEOUT_DIFF_FIELD] = (long) getStartTimeDiffCurrentTime(brewTimeout); 
-    } else {
-      body[BREW_TIMEOUT_FIELD] = nullptr;   
-      body[BREW_TIMEOUT_DIFF_FIELD] = nullptr;   
-    } 
+    body[BREW_TIMEOUT_FIELD] = timeStructToLong(brewTimeout);
+    long tempTimeoutDiff = (long) getStartTimeDiffCurrentTime(brewTimeout);
+    body[BREW_TIMEOUT_DIFF_FIELD] = (tempTimeoutDiff > 0) ? tempTimeoutDiff : 0;
     // Show hopper loaded from memory
     body[HOPPER_LOADED_FIELD] = hopperLoaded;
     // Add the instant brew metric for debugging
@@ -238,7 +229,7 @@ void loop() {
   }  
   long reoccurringStartSeconds = timeStructToLong(reoccurringStart);
   // Implementation for brew cycle when ready
-  if( currentSeconds > reoccurringStartSeconds ) {
+  if( (currentSeconds > reoccurringStartSeconds) && (reoccurringStartSeconds > 0) ) {
     // Bump up the brew start value by 24 hours for convience of just PATCHing the hopper loaded value
     reoccurringStartSeconds += 86400; // 24 hours
     // Increase our in memory value
@@ -246,7 +237,7 @@ void loop() {
     // For safety mesures if our hopper is not loaded by the registered brew time we cancel
     if(state == Brewing || !hopperLoaded) return;
     // Double check our values just to be sure
-    if(state != Brewing && hopperLoaded) {
+    if(state != Brewing && hopperLoaded) {  
       // Save brew timeout for another check
       // This should save the house from burning down
       brewTimeout = getTimeFromEpoch(currentSeconds + BREW_CYCLE_TIMEOUT);
